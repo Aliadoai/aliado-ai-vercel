@@ -1,38 +1,41 @@
-export default async function handler(req, res) {
-  const { message } = req.body;
+import { NextResponse } from 'next/server';
+import OpenAI from 'openai';
 
-  if (!message) {
-    return res.status(400).json({ error: 'Missing message' });
-  }
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
+export async function POST(req) {
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY1}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'Eres un asistente útil para pequeños negocios. Responde en un tono cálido y profesional.',
-          },
-          {
-            role: 'user',
-            content: message,
-          },
-        ],
-        temperature: 0.7,
-      }),
+    const body = await req.json();
+    const userMessage = body.message;
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content: 'Eres Aliado, un asistente útil y directo para pequeñas empresas en WhatsApp.'
+        },
+        {
+          role: 'user',
+          content: userMessage
+        }
+      ],
+      temperature: 0.7
     });
 
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || 'No pude generar una respuesta.';
+    const respuestaGenerada = completion.choices[0].message.content;
 
-    res.status(200).json({ reply });
+    return NextResponse.json({
+      reply: respuestaGenerada
+    });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error en /respond:', error);
+    return NextResponse.json(
+      { error: 'Hubo un error procesando tu mensaje' },
+      { status: 500 }
+    );
   }
 }
