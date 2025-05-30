@@ -1,8 +1,15 @@
 {
+  "version": 2,
   "builds": [
-    { "src": "main.py", "use": "@vercel/python" }
+    {
+      "src": "api/respond.js",
+      "use": "@vercel/node"
+    }
   ],
   "routes": [
-    { "src": "/respond", "methods": ["POST"], "dest": "main.py" }
+    {
+      "src": "/api/respond",
+      "dest": "api/respond.js"
+    }
   ]
 }
